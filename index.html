@@ -1,0 +1,675 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Crazy Dodge 💀</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: #050505;
+        font-family: Arial, sans-serif;
+        color: white;
+    }
+
+    #game {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        overflow: hidden;
+        background:
+            radial-gradient(circle at center, #241047, #08000f 60%, #000);
+    }
+
+    /* Background stars */
+    .star {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        background: white;
+        border-radius: 50%;
+        animation: starMove linear infinite;
+    }
+
+    @keyframes starMove {
+        from {
+            transform: translateY(-20px);
+        }
+        to {
+            transform: translateY(100vh);
+        }
+    }
+
+    #player {
+        position: absolute;
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #00ffff, #0066ff);
+        box-shadow:
+            0 0 15px #00ffff,
+            0 0 40px #0066ff;
+        left: 50%;
+        bottom: 60px;
+        transform: translateX(-50%);
+        z-index: 10;
+    }
+
+    #player::after {
+        content: "😈";
+        position: absolute;
+        font-size: 30px;
+        left: 12px;
+        top: 10px;
+    }
+
+    .enemy {
+        position: absolute;
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, #ff0000, #ff5500);
+        border-radius: 12px;
+        box-shadow:
+            0 0 15px red,
+            0 0 30px orange;
+    }
+
+    .enemy::after {
+        content: "💀";
+        position: absolute;
+        font-size: 28px;
+        left: 7px;
+        top: 7px;
+    }
+
+    .coin {
+        position: absolute;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: gold;
+        box-shadow:
+            0 0 15px yellow,
+            0 0 30px orange;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+
+    #hud {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 22px;
+        font-weight: bold;
+        z-index: 20;
+        text-shadow: 0 0 10px cyan;
+    }
+
+    #level {
+        color: #ff00ff;
+    }
+
+    #startScreen,
+    #gameOver {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.82);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        text-align: center;
+    }
+
+    #gameOver {
+        display: none;
+    }
+
+    h1 {
+        font-size: 60px;
+        margin: 10px;
+        color: #00ffff;
+        text-shadow:
+            0 0 10px cyan,
+            0 0 30px blue;
+        animation: crazy 0.8s infinite alternate;
+    }
+
+    @keyframes crazy {
+        from {
+            transform: rotate(-2deg) scale(1);
+        }
+        to {
+            transform: rotate(2deg) scale(1.05);
+        }
+    }
+
+    p {
+        font-size: 20px;
+        max-width: 600px;
+        color: #ddd;
+    }
+
+    button {
+        margin-top: 20px;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 30px;
+        background: linear-gradient(90deg, #ff00cc, #3333ff);
+        color: white;
+        font-size: 22px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 0 20px #ff00cc;
+    }
+
+    button:hover {
+        transform: scale(1.1);
+    }
+
+    #gameOver h2 {
+        font-size: 55px;
+        color: red;
+        text-shadow: 0 0 25px red;
+    }
+
+    #finalScore {
+        color: yellow;
+        font-size: 30px;
+    }
+
+    .shake {
+        animation: shake 0.15s;
+    }
+
+    @keyframes shake {
+        0% { transform: translate(0); }
+        25% { transform: translate(10px, -5px); }
+        50% { transform: translate(-10px, 5px); }
+        75% { transform: translate(5px, 5px); }
+        100% { transform: translate(0); }
+    }
+
+    /* Mobile controls */
+    #controls {
+        position: absolute;
+        bottom: 15px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        z-index: 30;
+    }
+
+    .control {
+        width: 70px;
+        height: 55px;
+        border-radius: 15px;
+        background: rgba(255,255,255,0.15);
+        border: 1px solid white;
+        color: white;
+        font-size: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+    }
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <div id="hud">
+        <div>💀 Score: <span id="score">0</span></div>
+        <div>🪙 Coins: <span id="coins">0</span></div>
+        <div>🔥 Level: <span id="level">1</span></div>
+    </div>
+
+    <div id="player"></div>
+
+    <div id="controls">
+        <div class="control" id="left">⬅️</div>
+        <div class="control" id="right">➡️</div>
+    </div>
+
+    <div id="startScreen">
+
+        <h1>💀 CRAZY DODGE 💀</h1>
+
+        <p>
+            Dodge the skulls. Collect the coins.
+            Survive as long as possible.
+            <br><br>
+            The game gets CRAZIER every level! 🔥
+        </p>
+
+        <button onclick="startGame()">START CRAZY GAME 🚀</button>
+
+    </div>
+
+    <div id="gameOver">
+
+        <h2>💀 YOU DIED 💀</h2>
+
+        <p>Your final score:</p>
+
+        <div id="finalScore">0</div>
+
+        <button onclick="startGame()">PLAY AGAIN 🔥</button>
+
+    </div>
+
+</div>
+
+<script>
+
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+
+const scoreText = document.getElementById("score");
+const coinsText = document.getElementById("coins");
+const levelText = document.getElementById("level");
+
+const startScreen = document.getElementById("startScreen");
+const gameOverScreen = document.getElementById("gameOver");
+const finalScore = document.getElementById("finalScore");
+
+let playerX;
+let score;
+let coins;
+let level;
+
+let enemies = [];
+let coinObjects = [];
+
+let gameRunning = false;
+
+let enemySpeed;
+let spawnRate;
+
+let keys = {
+    left: false,
+    right: false
+};
+
+
+/* ---------------------------
+   CREATE STARS
+---------------------------- */
+
+for (let i = 0; i < 100; i++) {
+
+    const star = document.createElement("div");
+
+    star.className = "star";
+
+    star.style.left = Math.random() * 100 + "%";
+    star.style.top = Math.random() * 100 + "%";
+
+    star.style.animationDuration =
+        (2 + Math.random() * 5) + "s";
+
+    game.appendChild(star);
+}
+
+
+/* ---------------------------
+   START GAME
+---------------------------- */
+
+function startGame() {
+
+    // Remove old enemies
+    enemies.forEach(e => e.remove());
+
+    coinObjects.forEach(c => c.remove());
+
+    enemies = [];
+    coinObjects = [];
+
+    score = 0;
+    coins = 0;
+    level = 1;
+
+    enemySpeed = 3;
+    spawnRate = 900;
+
+    playerX = window.innerWidth / 2;
+
+    player.style.left = playerX + "px";
+
+    scoreText.textContent = score;
+    coinsText.textContent = coins;
+    levelText.textContent = level;
+
+    startScreen.style.display = "none";
+    gameOverScreen.style.display = "none";
+
+    gameRunning = true;
+
+    requestAnimationFrame(gameLoop);
+
+    spawnEnemy();
+    spawnCoin();
+}
+
+
+/* ---------------------------
+   MOVE PLAYER
+---------------------------- */
+
+document.addEventListener("keydown", function(e) {
+
+    if (e.key === "ArrowLeft" || e.key === "a") {
+        keys.left = true;
+    }
+
+    if (e.key === "ArrowRight" || e.key === "d") {
+        keys.right = true;
+    }
+
+});
+
+
+document.addEventListener("keyup", function(e) {
+
+    if (e.key === "ArrowLeft" || e.key === "a") {
+        keys.left = false;
+    }
+
+    if (e.key === "ArrowRight" || e.key === "d") {
+        keys.right = false;
+    }
+
+});
+
+
+/* Mobile controls */
+
+document.getElementById("left").addEventListener("touchstart", () => {
+    keys.left = true;
+});
+
+document.getElementById("left").addEventListener("touchend", () => {
+    keys.left = false;
+});
+
+document.getElementById("right").addEventListener("touchstart", () => {
+    keys.right = true;
+});
+
+document.getElementById("right").addEventListener("touchend", () => {
+    keys.right = false;
+});
+
+
+/* ---------------------------
+   CREATE ENEMY
+---------------------------- */
+
+function spawnEnemy() {
+
+    if (!gameRunning) return;
+
+    const enemy = document.createElement("div");
+
+    enemy.className = "enemy";
+
+    enemy.style.left =
+        Math.random() * (window.innerWidth - 50) + "px";
+
+    enemy.style.top = "-60px";
+
+    game.appendChild(enemy);
+
+    enemies.push(enemy);
+
+    setTimeout(spawnEnemy, spawnRate);
+}
+
+
+/* ---------------------------
+   CREATE COIN
+---------------------------- */
+
+function spawnCoin() {
+
+    if (!gameRunning) return;
+
+    const coin = document.createElement("div");
+
+    coin.className = "coin";
+
+    coin.textContent = "🪙";
+
+    coin.style.left =
+        Math.random() * (window.innerWidth - 40) + "px";
+
+    coin.style.top = "-50px";
+
+    game.appendChild(coin);
+
+    coinObjects.push(coin);
+
+    setTimeout(
+        spawnCoin,
+        1500 + Math.random() * 2000
+    );
+}
+
+
+/* ---------------------------
+   COLLISION
+---------------------------- */
+
+function collision(a, b) {
+
+    const r1 = a.getBoundingClientRect();
+    const r2 = b.getBoundingClientRect();
+
+    return !(
+        r1.right < r2.left ||
+        r1.left > r2.right ||
+        r1.bottom < r2.top ||
+        r1.top > r2.bottom
+    );
+}
+
+
+/* ---------------------------
+   GAME LOOP
+---------------------------- */
+
+function gameLoop() {
+
+    if (!gameRunning) return;
+
+    /* Player movement */
+
+    if (keys.left) {
+        playerX -= 8;
+    }
+
+    if (keys.right) {
+        playerX += 8;
+    }
+
+    const maxX = window.innerWidth - 55;
+
+    if (playerX < 0) {
+        playerX = 0;
+    }
+
+    if (playerX > maxX) {
+        playerX = maxX;
+    }
+
+    player.style.left = playerX + "px";
+
+
+    /* Move enemies */
+
+    enemies.forEach((enemy, index) => {
+
+        let y = parseFloat(enemy.style.top);
+
+        y += enemySpeed;
+
+        enemy.style.top = y + "px";
+
+
+        /* Collision */
+
+        if (collision(player, enemy)) {
+
+            gameOver();
+
+        }
+
+
+        /* Remove enemy */
+
+        if (y > window.innerHeight) {
+
+            enemy.remove();
+
+            enemies.splice(index, 1);
+
+            score++;
+
+            scoreText.textContent = score;
+
+            increaseDifficulty();
+        }
+
+    });
+
+
+    /* Move coins */
+
+    coinObjects.forEach((coin, index) => {
+
+        let y = parseFloat(coin.style.top);
+
+        y += enemySpeed * 0.7;
+
+        coin.style.top = y + "px";
+
+
+        if (collision(player, coin)) {
+
+            coin.remove();
+
+            coinObjects.splice(index, 1);
+
+            coins++;
+
+            score += 10;
+
+            coinsText.textContent = coins;
+            scoreText.textContent = score;
+
+        }
+
+
+        if (y > window.innerHeight) {
+
+            coin.remove();
+
+            coinObjects.splice(index, 1);
+
+        }
+
+    });
+
+
+    requestAnimationFrame(gameLoop);
+}
+
+
+/* ---------------------------
+   DIFFICULTY
+---------------------------- */
+
+function increaseDifficulty() {
+
+    const newLevel =
+        Math.floor(score / 10) + 1;
+
+    if (newLevel > level) {
+
+        level = newLevel;
+
+        levelText.textContent = level;
+
+        enemySpeed += 0.7;
+
+        spawnRate = Math.max(
+            250,
+            spawnRate - 80
+        );
+
+        // Crazy screen effect
+
+        game.classList.add("shake");
+
+        setTimeout(() => {
+            game.classList.remove("shake");
+        }, 150);
+
+    }
+
+}
+
+
+/* ---------------------------
+   GAME OVER
+---------------------------- */
+
+function gameOver() {
+
+    gameRunning = false;
+
+    finalScore.textContent =
+        score + " POINTS";
+
+    gameOverScreen.style.display = "flex";
+
+}
+
+
+/* ---------------------------
+   MOUSE CONTROL
+---------------------------- */
+
+game.addEventListener("mousemove", function(e) {
+
+    if (!gameRunning) return;
+
+    playerX = e.clientX - 27;
+
+});
+
+
+</script>
+
+</body>
+</html>
+```
